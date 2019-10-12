@@ -130,8 +130,7 @@ public class WordServiceImpl implements WordService {
                     table.setResponseForm(responseForm);
                     table.setRequestType(requestType);
                     table.setResponseList(responseList);
-                    String req=JsonUtils.writeJsonStr(buildParamMap(requestList, map),true);
-                    table.setRequestParam(req);
+                    table.setRequestParam( JsonUtils.writeJsonStr(buildParamMap(requestList, map), true));
                     for (Request request : requestList) {
                         request.setParamType(request.getParamType().replaceAll("#/definitions/", ""));
                     }
@@ -144,16 +143,19 @@ public class WordServiceImpl implements WordService {
                         continue;
                     }
                     Object schema = ((Map) obj).get("schema");
-                    if (schema!=null && ((Map) schema).get("$ref") != null) {
+                    if (schema != null && ((Map) schema).get("$ref") != null) {
                         //非数组类型返回值
                         String ref = (String) ((Map) schema).get("$ref");
                         //解析swagger2 ref链接
                         ObjectNode objectNode = parseRef(ref, map);
-                        table.setResponseParam(JsonUtils.writeJsonStr(objectNode,true));
+                        table.setResponseParam(JsonUtils.writeJsonStr(objectNode, true));
                         result.add(table);
                         continue;
                     }
-                    Object items = ((Map) schema).get("items");
+                    Object items = null;
+                    if (schema != null) {
+                        items = ((Map) schema).get("items");
+                    }
                     if (null != items && ((Map) items).get("$ref") != null) {
                         //数组类型返回值
                         String ref = (String) ((Map) items).get("$ref");
@@ -161,10 +163,12 @@ public class WordServiceImpl implements WordService {
                         ObjectNode objectNode = parseRef(ref, map);
                         ArrayNode arrayNode = JsonUtils.createArrayNode();
                         arrayNode.add(objectNode);
-                        table.setResponseParam(JsonUtils.writeJsonStr(arrayNode,true));
+                        table.setResponseParam(JsonUtils.writeJsonStr(arrayNode, true));
                         result.add(table);
                         continue;
                     }
+
+
                     result.add(table);
 
                 }
