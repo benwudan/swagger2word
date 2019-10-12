@@ -130,7 +130,8 @@ public class WordServiceImpl implements WordService {
                     table.setResponseForm(responseForm);
                     table.setRequestType(requestType);
                     table.setResponseList(responseList);
-                    table.setRequestParam(JsonUtils.writeJsonStr(buildParamMap(requestList, map)));
+                    String req=JsonUtils.writeJsonStr(buildParamMap(requestList, map),true);
+                    table.setRequestParam(req);
                     for (Request request : requestList) {
                         request.setParamType(request.getParamType().replaceAll("#/definitions/", ""));
                     }
@@ -143,24 +144,24 @@ public class WordServiceImpl implements WordService {
                         continue;
                     }
                     Object schema = ((Map) obj).get("schema");
-                    if (((Map) schema).get("$ref") != null) {
+                    if (schema!=null && ((Map) schema).get("$ref") != null) {
                         //非数组类型返回值
                         String ref = (String) ((Map) schema).get("$ref");
                         //解析swagger2 ref链接
                         ObjectNode objectNode = parseRef(ref, map);
-                        table.setResponseParam(objectNode.toString());
+                        table.setResponseParam(JsonUtils.writeJsonStr(objectNode,true));
                         result.add(table);
                         continue;
                     }
                     Object items = ((Map) schema).get("items");
-                    if (items != null && ((Map) items).get("$ref") != null) {
+                    if (null != items && ((Map) items).get("$ref") != null) {
                         //数组类型返回值
                         String ref = (String) ((Map) items).get("$ref");
                         //解析swagger2 ref链接
                         ObjectNode objectNode = parseRef(ref, map);
                         ArrayNode arrayNode = JsonUtils.createArrayNode();
                         arrayNode.add(objectNode);
-                        table.setResponseParam(arrayNode.toString());
+                        table.setResponseParam(JsonUtils.writeJsonStr(arrayNode,true));
                         result.add(table);
                         continue;
                     }
